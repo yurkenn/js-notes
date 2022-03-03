@@ -22,6 +22,24 @@ const StorageController = (function () {
                 products = JSON.parse(localStorage.getItem('products'));
             }
             return products;
+        },
+        updateProduct: function(product){
+            let products = JSON.parse(localStorage.getItem('products'));
+            products.forEach(function(prd,index){
+                if(product.id == prd.id){
+                    products.splice(index,1,product);
+                }
+            });
+            localStorage.setItem('products',JSON.stringify(products));
+        },
+        deleteProduct: function(id){
+            let products = JSON.parse(localStorage.getItem('products'));
+            products.forEach(function(prd,index){
+                if(id == prd.id){
+                    products.splice(index,1);
+                }
+            });
+            localStorage.setItem('products',JSON.stringify(products));
         }
     }
 })();
@@ -331,6 +349,9 @@ const App = (function (ProductCtrl, UICtrl, StorageCtrl) {
 
             // show total
             UICtrl.showTotal(total);
+            
+            //update Storage
+            StorageCtrl.updateProduct(updatedProduct)
 
             UICtrl.addingState();
 
@@ -363,6 +384,9 @@ const App = (function (ProductCtrl, UICtrl, StorageCtrl) {
 
         // show total
         UICtrl.showTotal(total);
+
+        //delete from Storage
+        StorageCtrl.deleteProduct(selectedProduct.id);
 
         UICtrl.addingState();
 
