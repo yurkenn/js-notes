@@ -27,30 +27,36 @@ const ProductController = (function () {
         getData: function () {
             return data;
         },
-        getProductById: function(id){
+        getProductById: function (id) {
             let product = null;
-            data.products.forEach(function(prd){
-                if(prd.id == id){
+            data.products.forEach(function (prd) {
+                if (prd.id == id) {
                     product = prd;
                 }
             })
             return product;
         },
-        addProduct: function(name,price){
+        setCurrentProduct: function (product) {
+            data.selectedProduct = product;
+        },
+        getCurrentProduct: function(){
+            return data.selectedProduct
+        },
+        addProduct: function (name, price) {
             let id;
-            if(data.products.length>0){
-                id= data.products[data.products.length-1].id+1;
-            }else{
+            if (data.products.length > 0) {
+                id = data.products[data.products.length - 1].id + 1;
+            } else {
                 id = 0;
             }
-            const newProduct = new Product(id,name,parseFloat(price));
+            const newProduct = new Product(id, name, parseFloat(price));
             data.products.push(newProduct);
             return newProduct;
         },
-        getTotal: function(){
-            let total =0;
-            data.products.forEach(function(item){
-                total+=item.price;
+        getTotal: function () {
+            let total = 0;
+            data.products.forEach(function (item) {
+                total += item.price;
             });
             data.totalPrice = total;
             return data.totalPrice;
@@ -63,13 +69,13 @@ const ProductController = (function () {
 const UIController = (function () {
 
     const Selectors = {
-        productList : "#item-list",
-        addButton : ".addBtn",
-        productName:"#productName",
-        productPrice:"#productPrice",
+        productList: "#item-list",
+        addButton: ".addBtn",
+        productName: "#productName",
+        productPrice: "#productPrice",
         productCard: "#productCard",
-        totalTl:'#total-tl',
-        totalDolar:"#total-dolar"
+        totalTl: '#total-tl',
+        totalDolar: "#total-dolar"
     }
 
     return {
@@ -90,11 +96,11 @@ const UIController = (function () {
             });
             document.querySelector(Selectors.productList).innerHTML = html;
         },
-        getSelector : function(){
+        getSelector: function () {
             return Selectors;
         },
-        addProduct: function(prd){
-            document.querySelector(Selectors.productCard).style.display='block';
+        addProduct: function (prd) {
+            document.querySelector(Selectors.productCard).style.display = 'block';
             var item = `
             <tr>
                 <td>${prd.id}</td>
@@ -105,18 +111,24 @@ const UIController = (function () {
                 </td>
                 </tr>
             `;
-            document.querySelector(Selectors.productList).innerHTML +=item;
+            document.querySelector(Selectors.productList).innerHTML += item;
         },
-        clearInputs:function(){
+        clearInputs: function () {
             document.querySelector(Selectors.productName).value = "";
-            document.querySelector(Selectors.productPrice).value= "";
+            document.querySelector(Selectors.productPrice).value = "";
         },
-        hideCard: function(){
+        hideCard: function () {
             document.querySelector(Selectors.productCard).style.display = 'none';
         },
-        showTotal: function(total){
-            document.querySelector(Selectors.totalDolar).textContent=total;
-            document.querySelector(Selectors.totalTl).textContent=total*14
+        showTotal: function (total) {
+            document.querySelector(Selectors.totalDolar).textContent = total;
+            document.querySelector(Selectors.totalTl).textContent = total * 14
+        },
+        addProductForm: function(){
+            const selectedProduct = ProductController.getCurrentProduct();
+            document.querySelector(Selectors.productName).value = selectedProduct.name;
+            document.querySelector(Selectors.productPrice).value = selectedProduct.price;
+            
         }
     }
 
@@ -129,52 +141,59 @@ const App = (function (ProductCtrl, UICtrl) {
     const UISelectors = UIController.getSelector();
 
     //Load Event Listeners
-    const loadEventListeners = function(){
+    const loadEventListeners = function () {
         //add product event
-        document.querySelector(UISelectors.addButton).addEventListener('click',productAddSubmit);
+        document.querySelector(UISelectors.addButton).addEventListener('click', productAddSubmit);
 
         //edit product 
-        document.querySelector(UISelectors.productList).addEventListener('click',productEditSubmit)
+        document.querySelector(UISelectors.productList).addEventListener('click', productEditSubmit)
 
     }
 
-    const productAddSubmit =function(e){
+    const productAddSubmit = function (e) {
         const productName = document.querySelector(UISelectors.productName).value;
         const productPrice = document.querySelector(UISelectors.productPrice).value;
-        
-        if(productName!=='' && productPrice!==''){
+
+        if (productName !== '' && productPrice !== '') {
             //add product
-            const newProduct= ProductCtrl.addProduct(productName,productPrice);
-            
+            const newProduct = ProductCtrl.addProduct(productName, productPrice);
+
             //add item to list 
             UIController.addProduct(newProduct);
-            
+
             //get totla
             const total = ProductCtrl.getTotal();
-            
+
             //show total
             UIController.showTotal(total);
-            
-            
+
+
             //clear inputs
             UIController.clearInputs();
         }
-        
+
         e.preventDefault();
-        console.log(productName,productPrice);
+        console.log(productName, productPrice);
     }
 
-    const productEditSubmit = function(e){
-       
-       if(e.target.classList.contains('edit-product')){
-          const id = e.target.parentNode.previousElementSibling.previousElementSibling.previousElementSibling.textContent;
+    const productEditSubmit = function (e) {
 
-          //get selected product
-          const product = ProductController.getProductById(id);
-          console.log(product);
-       }
-       
-       
+        if (e.target.classList.contains('edit-product')) {
+            const id = e.target.parentNode.previousElementSibling.previousElementSibling.previousElementSibling.textContent;
+
+            //get selected product
+            const product = ProductController.getProductById(id);
+
+
+            //set current product
+            ProductCtrl.setCurrentProduct(product);
+
+            // add product to UI
+            UICtrl.addProductForm();
+
+        }
+
+
         e.preventDefault();
     }
 
@@ -182,14 +201,14 @@ const App = (function (ProductCtrl, UICtrl) {
         init: function () {
             console.log("starting app...");
             const products = ProductCtrl.getProducts();
-            
-            if(products.length==0){
+
+            if (products.length == 0) {
                 UICtrl.hideCard();
-            }else{
+            } else {
                 UICtrl.createProductList(products);
             }
 
-           
+
 
             //load event listeners
             loadEventListeners()
