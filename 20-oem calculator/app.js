@@ -50,7 +50,9 @@ const UIController = (function () {
         addButton : ".addBtn",
         productName:"#productName",
         productPrice:"#productPrice",
-        productCard: "#productCard"
+        productCard: "#productCard",
+        totalTl:'#total-tl',
+        totalDolar:"#total-dolar"
     }
 
     return {
